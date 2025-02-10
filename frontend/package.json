@@ -10,18 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@redux-devtools/extension": "^3.3.0",
     "axios": "^1.7.9",
     "event-manager": "file:..",
     "framer-motion": "^12.4.1",
     "lucide-react": "^0.471.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-redux": "^9.0.4",
     "react-router-dom": "^7.1.1",
     "react-toastify": "^11.0.3",
-    "redux": "^5.0.1",                    
-    "react-redux": "^9.0.4",             
+    "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
-    "@redux-devtools/extension": "^3.3.0", 
     "socket.io-client": "^4.8.1",
     "zustand": "^5.0.3"
   },
