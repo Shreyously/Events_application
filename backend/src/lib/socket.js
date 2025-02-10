@@ -3,7 +3,7 @@ import { Server } from 'socket.io';
 const setupSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: "https://events-application-mu.vercel.app/",
+      origin: "https://events-application-mu.vercel.app",
       methods: ["GET", "POST"],
       credentials: true
     }
