@@ -31,34 +31,38 @@ import User from "../models/user.model.js";
 //     res.status(500).json({ message: "Internal server error" });
 //   }
 // };
-export const protectRoute = async (req, res, next) => {
-  try {
-    const token = req.cookies.jwt;
-    console.log("Token:", token);
+  // backend/src/middleware/auth.middleware.js
+  import jwt from "jsonwebtoken";
+  import User from "../models/user.model.js";
 
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized - No Token Provided" });
-    }
-
+  export const protectRoute = async (req, res, next) => {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("Decoded Token:", decoded);
+      const token = req.cookies.jwt;
+      console.log("Token:", token);
 
-      const user = await User.findById(decoded.userId).select("-password");
-      console.log("User:", user);
-
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
+      if (!token) {
+        return res.status(401).json({ message: "Unauthorized - No Token Provided" });
       }
 
-      req.user = user;
-      next();
-    } catch (jwtError) {
-      console.log("JWT Verification Error:", jwtError);
-      return res.status(401).json({ message: "Invalid or expired token" });
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("Decoded Token:", decoded);
+
+        const user = await User.findById(decoded.userId).select("-password");
+        console.log("User:", user);
+
+        if (!user) {
+          return res.status(401).json({ message: "User not found" });
+        }
+
+        req.user = user;
+        next();
+      } catch (jwtError) {
+        console.log("JWT Verification Error:", jwtError);
+        return res.status(401).json({ message: "Invalid or expired token" });
+      }
+    } catch (error) {
+      console.log("Error in protectRoute middleware: ", error.message);
+      res.status(401).json({ message: "Authentication failed" });
     }
-  } catch (error) {
-    console.log("Error in protectRoute middleware: ", error.message);
-    res.status(401).json({ message: "Authentication failed" });
-  }
-};
+  };

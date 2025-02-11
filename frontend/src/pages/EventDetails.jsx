@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 
 const EventDetails = () => {
   const { id } = useParams();
+  console.log('Event ID:', id);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const socket = useSocket();
@@ -94,21 +95,21 @@ const EventDetails = () => {
 
   const handleJoinEvent = async () => {
     if (authUser?.isGuest) {
-        toast.error('Guest accounts cannot join events. Please create a full account.');
-        return;
+      toast.error('Guest accounts cannot join events. Please create a full account.');
+      return;
     }
     try {
-        await dispatch(joinEvent(id));
-        toast.success('Successfully joined event');
+      await dispatch(joinEvent(id));
+      toast.success('Successfully joined event');
     } catch (error) {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('user');
-            navigate('/login', { replace: true });
-        } else {
-            toast.error(error.response?.data?.message || 'Failed to join event');
-        }
+      if (error.response?.status === 401) {
+        localStorage.removeItem('user');
+        navigate('/login', { replace: true });
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to join event');
+      }
     }
-};
+  };
 
   const handleLeaveEvent = async () => {
     if (authUser?.isGuest) {
