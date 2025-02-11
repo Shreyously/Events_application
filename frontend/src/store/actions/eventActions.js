@@ -124,9 +124,16 @@ export const joinEvent = (id) => async (dispatch) => {
     dispatch(joinEventSuccess(response.data));
     toast.success('Successfully joined event');
   } catch (error) {
-    console.error('Join event error:', error.response?.data || error.message);
-    dispatch(joinEventFailure(error.response?.data?.message || 'Failed to join event'));
-    toast.error(error.response?.data?.message || 'Failed to join event');
+    console.error('Join event error:', error);
+    const errorMessage = error.response?.data?.message || 'Failed to join event';
+    dispatch(joinEventFailure(errorMessage));
+    toast.error(errorMessage);
+    
+    if (error.response?.status === 401) {
+      localStorage.removeItem('user');
+      window.location.replace('/login');
+    }
+    return Promise.reject(error);
   }
 };
 

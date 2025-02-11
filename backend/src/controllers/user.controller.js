@@ -68,10 +68,9 @@ export const logout = (req, res) => {
     res.cookie("jwt", "", {
       maxAge: 0,
       httpOnly: true,
-      secure: true, // for HTTPS
-      sameSite: 'none', // important for cross-origin requests
-      path: '/',
-      domain: '.onrender.com' // adjust this to match your backend domain
+      secure: true,
+      sameSite: 'none',
+      path: '/'
     });
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
@@ -79,6 +78,7 @@ export const logout = (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 export const checkAuth = async (req, res) => {
   try {

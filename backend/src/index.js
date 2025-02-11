@@ -24,7 +24,7 @@ app.use(cookieParser());
 app.use(cors({
     origin: "https://events-application-mu.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
     credentials: true,
     exposedHeaders: ["set-cookie"]
 }));
