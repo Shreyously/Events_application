@@ -59,6 +59,7 @@ export const axiosInstance = axios.create({
     }
 });
 
+// Add request interceptor to add token
 axiosInstance.interceptors.request.use(
     (config) => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -72,15 +73,17 @@ axiosInstance.interceptors.request.use(
     }
 );
 
+// Add response interceptor for handling auth errors
 axiosInstance.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
         if (error.response?.status === 401) {
-            // Clear user data from localStorage
             localStorage.removeItem('user');
-            // Use window.location.replace instead of href
-            window.location.replace('/login');
-            return Promise.reject(error);
+            // Instead of using window.location, use history
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/login') {
+                window.location.replace('/login');
+            }
         }
         return Promise.reject(error);
     }

@@ -94,24 +94,21 @@ const EventDetails = () => {
 
   const handleJoinEvent = async () => {
     if (authUser?.isGuest) {
-      toast.error('Guest accounts cannot join events. Please create a full account.');
-      return;
+        toast.error('Guest accounts cannot join events. Please create a full account.');
+        return;
     }
     try {
-      await dispatch(joinEvent(id));
-      // Emit socket event after successful join
-      
-      
+        await dispatch(joinEvent(id));
+        toast.success('Successfully joined event');
     } catch (error) {
-      if (error.response?.status === 401) {
-        toast.error('Please log in to join events');
-        navigate('/login');
-      } else {
-        toast.error(error.response?.data?.message || 'Failed to join event');
-      }
-      
+        if (error.response?.status === 401) {
+            localStorage.removeItem('user');
+            navigate('/login', { replace: true });
+        } else {
+            toast.error(error.response?.data?.message || 'Failed to join event');
+        }
     }
-  };
+};
 
   const handleLeaveEvent = async () => {
     if (authUser?.isGuest) {

@@ -120,20 +120,12 @@ export const getEventById = (id) => async (dispatch) => {
 
 export const joinEvent = (id) => async (dispatch) => {
   try {
-    const response = await axiosInstance.post(`/events/${id}/join`);
-    dispatch(joinEventSuccess(response.data));
-    toast.success('Successfully joined event');
+      const response = await axiosInstance.post(`/events/${id}/join`);
+      dispatch(joinEventSuccess(response.data));
+      return response.data;
   } catch (error) {
-    console.error('Join event error:', error);
-    const errorMessage = error.response?.data?.message || 'Failed to join event';
-    dispatch(joinEventFailure(errorMessage));
-    toast.error(errorMessage);
-    
-    if (error.response?.status === 401) {
-      localStorage.removeItem('user');
-      window.location.replace('/login');
-    }
-    return Promise.reject(error);
+      dispatch(joinEventFailure(error.response?.data?.message || 'Failed to join event'));
+      throw error; // Re-throw the error to be handled by the component
   }
 };
 
