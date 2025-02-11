@@ -27,14 +27,20 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
 app.use(cors({
     origin: "https://events-application-mu.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-    preflightContinue: true,
-    optionsSuccessStatus: 204
+    exposedHeaders: ["set-cookie"]
 }));
-app.options("*", cors());
+// app.options("*", cors());
 
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Credentials', true);
+    res.header('Access-Control-Allow-Origin', 'https://events-application-mu.vercel.app');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization');
+    next();
+});
 // Routes
 app.use("/api/user", UserRoute);
 app.use("/api/events", EventRoute);

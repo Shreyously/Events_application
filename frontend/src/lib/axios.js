@@ -4,7 +4,9 @@ export const axiosInstance = axios.create({
     baseURL: "https://events-application.onrender.com/api",
     withCredentials: true,
     headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Access-Control-Allow-Credentials': true
     }
 });
 
