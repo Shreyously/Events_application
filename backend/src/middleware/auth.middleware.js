@@ -31,9 +31,7 @@ import User from "../models/user.model.js";
 //     res.status(500).json({ message: "Internal server error" });
 //   }
 // };
-  // backend/src/middleware/auth.middleware.js
-  import jwt from "jsonwebtoken";
-  import User from "../models/user.model.js";
+  
 
   export const protectRoute = async (req, res, next) => {
     try {
