@@ -1,51 +1,43 @@
-import { Server } from 'socket.io';
+     // backend/src/lib/socket.js
+     import { Server } from 'socket.io';
 
-const setupSocket = (server) => {
-  const io = new Server(server, {
-    cors: {
-      origin: "https://events-application-mu.vercel.app",
-      methods: ["GET", "POST"],
-      credentials: true
-    }
-  });
+     let ioInstance;
 
-  io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
+     export const setupSocket = (server) => {
+       ioInstance = new Server(server, {
+         cors: {
+           origin: "https://events-application-mu.vercel.app",
+           methods: ["GET", "POST"],
+           credentials: true
+         }
+       });
 
-    // Handle joining room
-    socket.on('joinRoom', ({ eventId }) => {
-      socket.join(`event:${eventId}`);
-    });
+       ioInstance.on('connection', (socket) => {
+         console.log('Client connected:', socket.id);
 
-    // Handle leaving room
-    socket.on('leaveRoom', ({ eventId }) => {
-      socket.leave(`event:${eventId}`);
-    });
+         // Handle joining room
+         socket.on('joinRoom', ({ eventId }) => {
+           socket.join(`event:${eventId}`);
+         });
 
-    // Handle user join event
-    socket.on('userJoined', (data) => {
-      io.to(`event:${data.eventId}`).emit('userJoined', {
-        username: data.username,
-        userId: data.userId,
-        timestamp: data.timestamp
-      });
-    });
+         // Handle leaving room
+         socket.on('leaveRoom', ({ eventId }) => {
+           socket.leave(`event:${eventId}`);
+         });
 
-    // Handle user leave event
-    socket.on('userLeft', (data) => {
-      io.to(`event:${data.eventId}`).emit('userLeft', {
-        username: data.username,
-        userId: data.userId,
-        timestamp: data.timestamp
-      });
-    });
+         // Additional event handlers can be added here
 
-    socket.on('disconnect', () => {
-      console.log('Client disconnected:', socket.id);
-    });
-  });
+         socket.on('disconnect', () => {
+           console.log('Client disconnected:', socket.id);
+         });
+       });
 
-  return io;
-};
+       return ioInstance;
+     };
 
-export default setupSocket;
+     export const getIO = () => {
+       if (!ioInstance) {
+         throw new Error("Socket.io not initialized!");
+       }
+       return ioInstance;
+     };

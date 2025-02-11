@@ -1,7 +1,7 @@
 import User from '../models/user.model.js';
 import Event from '../models/event.model.js';
 import cloudinary from '../lib/cloudinary.js';
-import { io } from '../index.js';
+import { getIO } from '../lib/socket.js'; // Import getIO
 
 
 export const CreateEvent = async (req, res) => {
@@ -150,101 +150,107 @@ export const updateEvent = async (req, res) => {
   }
 };
 
-export const joinEvent = async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' });
+   // backend/src/controllers/event.controller.js
+
+   export const joinEvent = async (req, res) => {
+     try {
+       if (!req.user) {
+         return res.status(401).json({ message: 'Authentication required' });
+       }
+
+       const event = await Event.findById(req.params.id);
+
+       if (!event) {
+         return res.status(404).json({ message: 'Event not found' });
+       }
+
+       const userId = req.user._id;
+       console.log('User trying to join:', userId); // Debug log
+
+       // Check if user is already attending
+       if (event.attendees.includes(userId)) {
+         return res.status(400).json({ message: 'Already attending this event' });
+       }
+
+       // Check if event is full
+       if (event.attendees.length >= event.capacity) {
+         return res.status(400).json({ message: 'Event is full' });
+       }
+
+       // Add user to event attendees
+       event.attendees.push(userId);
+       await event.save();
+       console.log('Updated event attendees:', event.attendees); // Debug log
+
+       // Add event to user's attending events
+       const user = await User.findById(req.user._id);
+       user.eventsAttending.push(event._id);
+       await user.save();
+
+       // Populate the updated event
+       const populatedEvent = await Event.findById(event._id)
+         .populate('creator', 'name username')
+         .populate('attendees', 'name username');
+
+       console.log('Populated event:', populatedEvent); // Debug log
+
+       // Emit socket event for real-time updates
+       const io = getIO();
+       io.to(`event:${event._id}`).emit('eventUpdate', populatedEvent);
+       io.to(`event:${event._id}`).emit('userJoined', {
+         username: user.username || user.name,
+         userId: user._id,
+         timestamp: new Date()
+       });
+
+       res.json(populatedEvent);
+     } catch (error) {
+       console.error('Error joining event:', error);
+       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+         return res.status(401).json({ message: 'Invalid or expired token' });
+       }
+       res.status(500).json({ message: 'Server error' });
+     }
+   };
+
+   export const leaveEvent = async (req, res) => {
+    try {
+      const event = await Event.findById(req.params.id);
+      
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+
+      // Update Event model
+      event.attendees = event.attendees.filter(
+        attendee => attendee.toString() !== req.user._id.toString()
+      );
+      await event.save();
+
+      // Update User model
+      const user = await User.findById(req.user._id);
+      user.eventsAttending = user.eventsAttending.filter(
+        eventId => eventId.toString() !== event._id.toString()
+      );
+      await user.save();
+
+      // Populate the updated event
+      const populatedEvent = await Event.findById(event._id)
+        .populate('creator', 'name username')
+        .populate('attendees', 'name username');
+
+      // Emit socket event for real-time updates
+      const io = getIO();
+      io.to(`event:${event._id}`).emit('eventUpdate', populatedEvent);
+      io.to(`event:${event._id}`).emit('userLeft', {
+        username: user.username || user.name,
+        userId: user._id,
+        timestamp: new Date()
+      });
+
+      res.json(populatedEvent);
+    } catch (error) {
+      console.error('Error leaving event:', error);
+      res.status(500).json({ message: 'Server error' });
     }
-    const event = await Event.findById(req.params.id);
-    
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
-    }
-
-    const userId = req.user._id;
-    console.log('User trying to join:', userId); // Debug log
-
-    // Check if user is already attending
-    if (event.attendees.includes(userId)) {
-      return res.status(400).json({ message: 'Already attending this event' });
-    }
-
-    // Check if event is full
-    if (event.attendees.length >= event.capacity) {
-      return res.status(400).json({ message: 'Event is full' });
-    }
-
-    // Add user to event attendees
-    event.attendees.push(userId);
-    await event.save();
-    console.log('Updated event attendees:', event.attendees); // Debug log
-
-   // Add event to user's attending events
-   const user = await User.findById(req.user._id);
-   user.eventsAttending.push(event._id);
-   await user.save();
-
-    // Populate the updated event
-    const populatedEvent = await Event.findById(event._id)
-      .populate('creator', 'name username')
-      .populate('attendees', 'name username');
-
-    console.log('Populated event:', populatedEvent); // Debug log
-    // Emit socket event for real-time updates
-    req.io.to(`event:${event._id}`).emit('eventUpdate', populatedEvent);
-    req.io.to(`event:${event._id}`).emit('userJoined', {
-      username: user.username || user.name,
-      userId: user._id,
-      timestamp: new Date()
-    });
-
-    res.json(populatedEvent);
-  } catch (error) {
-    console.error('Error joining event:', error);
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Invalid or expired token' });
-    }
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-export const leaveEvent = async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id);
-    
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
-    }
-
-    // Update Event model
-    event.attendees = event.attendees.filter(
-      attendee => attendee.toString() !== req.user._id.toString()
-    );
-    await event.save();
-
-    // Update User model
-    const user = await User.findById(req.user._id);
-    user.eventsAttending = user.eventsAttending.filter(
-      eventId => eventId.toString() !== event._id.toString()
-    );
-    await user.save();
-
-    // Populate the updated event
-    const populatedEvent = await Event.findById(event._id)
-      .populate('creator', 'name username')
-      .populate('attendees', 'name username');
-
-    // Emit socket event for real-time updates
-    req.io.to(`event:${event._id}`).emit('eventUpdate', populatedEvent);
-    req.io.to(`event:${event._id}`).emit('userLeft', {
-      username: user.username || user.name,
-      userId: user._id,
-      timestamp: new Date()
-    });
-
-    res.json(populatedEvent);
-  } catch (error) {
-    console.error('Error leaving event:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+  };
