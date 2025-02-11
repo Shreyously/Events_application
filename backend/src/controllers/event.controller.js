@@ -152,6 +152,9 @@ export const updateEvent = async (req, res) => {
 
 export const joinEvent = async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
     const event = await Event.findById(req.params.id);
     
     if (!event) {
@@ -198,6 +201,9 @@ export const joinEvent = async (req, res) => {
     res.json(populatedEvent);
   } catch (error) {
     console.error('Error joining event:', error);
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
     res.status(500).json({ message: 'Server error' });
   }
 };

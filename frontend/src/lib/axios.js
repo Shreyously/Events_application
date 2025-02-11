@@ -25,12 +25,25 @@ axiosInstance.interceptors.request.use(
 );
 
 // Add response interceptor for handling auth errors
+// axiosInstance.interceptors.response.use(
+//     (response) => response,
+//     (error) => {
+//         if (error.response?.status === 401) {
+            
+//             window.location.href = '/login';
+//         }
+//         return Promise.reject(error);
+//     }
+// );
+// Add response interceptor for handling auth errors
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            
-            window.location.href = '/login';
+            // Clear local storage
+            localStorage.removeItem('user');
+            // Use navigate instead of window.location
+            window.location.replace('/login');
         }
         return Promise.reject(error);
     }

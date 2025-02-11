@@ -103,7 +103,12 @@ const EventDetails = () => {
       
       
     } catch (error) {
-      console.error('Error joining event:', error);
+      if (error.response?.status === 401) {
+        toast.error('Please log in to join events');
+        navigate('/login');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to join event');
+      }
       
     }
   };
