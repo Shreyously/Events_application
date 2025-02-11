@@ -30,6 +30,8 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
+    preflightContinue: true,
+    optionsSuccessStatus: 204
 }));
 app.options("*", cors());
 

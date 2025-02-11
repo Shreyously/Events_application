@@ -8,7 +8,15 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     const newSocket = io('https://events-application.onrender.com', {
-      withCredentials: true
+      withCredentials: true,
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
     });
 
     setSocket(newSocket);

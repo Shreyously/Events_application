@@ -3,6 +3,9 @@ import axios from 'axios';
 export const axiosInstance = axios.create({
     baseURL: "https://events-application.onrender.com/api",
     withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json'
+    }
 });
 
 // Add request interceptor to add token
@@ -24,7 +27,7 @@ axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            localStorage.removeItem('user');
+            
             window.location.href = '/login';
         }
         return Promise.reject(error);
