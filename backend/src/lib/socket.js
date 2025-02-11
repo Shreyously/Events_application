@@ -12,12 +12,12 @@ const setupSocket = (server) => {
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
 
-    // Handle joining room without creating log
+    // Handle joining room
     socket.on('joinRoom', ({ eventId }) => {
       socket.join(`event:${eventId}`);
     });
 
-    // Handle leaving room without creating log
+    // Handle leaving room
     socket.on('leaveRoom', ({ eventId }) => {
       socket.leave(`event:${eventId}`);
     });
